@@ -13,37 +13,49 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 public class Robot extends IterativeRobot {
 
-	WPI_TalonSRX leftMotor1 = new WPI_TalonSRX(0),
-			  leftMotor2 = new WPI_TalonSRX(1),
-			  leftMotor3 = new WPI_TalonSRX(2),
-			  rightMotor1 = new WPI_TalonSRX(3),
-			  rightMotor2 = new WPI_TalonSRX(4),
-			  rightMotor3 = new WPI_TalonSRX(5);
+	WPI_TalonSRX 	leftMotor1 			= new WPI_TalonSRX(0),
+			  		leftMotor2 			= new WPI_TalonSRX(1),
+			  		leftMotor3 			= new WPI_TalonSRX(2),
+			  		rightMotor1 		= new WPI_TalonSRX(3),
+			  		rightMotor2 		= new WPI_TalonSRX(4),
+			  		rightMotor3 		= new WPI_TalonSRX(5),
+			  		intakeMotorLeft 	= new WPI_TalonSRX(6),
+			  		intakeMotorRight 	= new WPI_TalonSRX(7),
+			  		liftMotor 			= new WPI_TalonSRX(8),
+			  		winchMotor 			= new WPI_TalonSRX(9);
+
+	Compressor  	comp 				= new Compressor(0);
 	
-	Compressor  comp = new Compressor(0);
-	
-    Joystick  controller = new Joystick(0);
+    Joystick  		controller 			= new Joystick(0);
     
-    Solenoid 	shifter0 = new Solenoid(0),
-    			shifter1 = new Solenoid(1);
+    Solenoid 		shifter0 			= new Solenoid(0),
+    				shifter1 			= new Solenoid(1);
     
-    JoystickButton clutch = new JoystickButton(controller, 5),
-    				throttleButton = new JoystickButton(controller, 6);
+    JoystickButton 	clutch 				= new JoystickButton(controller, 5),
+    				throttleButton 		= new JoystickButton(controller, 6),
+    				intakeButton		= new JoystickButton(controller, 2),
+    				outtakeButton		= new JoystickButton(controller, 3);
     
-    float deadband = (float) 0.2,
-    		leftStickY,
-    		rightStickY,
-    		throttle = (float) 0.3;
+    float 			deadband 			= (float) 0.2,
+    				leftStickY,
+    				rightStickY,
+    				throttle 			= (float) 0.3;
     
     JoystickReading controllerRead;
-    DriveClass robotDrive;
+    DriveClass 		robotDrive;
+    LiftClass 		robotLift;
+    IntakeClass		robotIntake;
     
 	@Override
 	public void robotInit() {
 		comp.start();
-		controllerRead = new JoystickReading();
-		robotDrive = new DriveClass();
+		controllerRead 	= new JoystickReading();
+		robotDrive 		= new DriveClass();
+		robotLift		= new LiftClass();
+		robotIntake		= new IntakeClass();
 		robotDrive.driveCreation(leftMotor1, leftMotor2, leftMotor3, rightMotor1, rightMotor2, rightMotor3);
+		robotLift.liftCreation(liftMotor);
+		robotIntake.intakeCreation(intakeMotorLeft, intakeMotorRight);
 	}
 
 	
@@ -62,7 +74,10 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 
 	robotDrive.driveCode(throttleButton, clutch, shifter0, shifter1, controllerRead.getLeftY(controller, deadband),
-			controllerRead.getRightY(controller,  deadband), throttle);	
+			controllerRead.getRightY(controller,  deadband), throttle);
+	
+	robotLift.liftCode(controllerRead.getLeftTrigger(controller), controllerRead.getRightTrigger(controller));
+	robotIntake.intakeCode(intakeButton, outtakeButton);
 		
 	}
 
